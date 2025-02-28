@@ -1,0 +1,205 @@
+definitions:
+  models.ApiError:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.CalculateRequest:
+    properties:
+      expression:
+        type: string
+    required:
+    - expression
+    type: object
+  models.CalculateResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  models.Expression:
+    properties:
+      id:
+        type: string
+      result:
+        type: number
+      status:
+        type: string
+    type: object
+  models.GetByIdExpressionResponse:
+    properties:
+      expression:
+        $ref: '#/definitions/models.Expression'
+    type: object
+  models.ListAllExpressionsResponse:
+    properties:
+      expressions:
+        items:
+          $ref: '#/definitions/models.Expression'
+        type: array
+    type: object
+  models.TaskRequest:
+    properties:
+      id:
+        type: string
+      result: {}
+    type: object
+  models.TaskResponse:
+    properties:
+      arg1:
+        type: number
+      arg2:
+        type: number
+      expression_id:
+        type: string
+      id:
+        type: string
+      operation:
+        type: string
+      operation_time:
+        type: integer
+    type: object
+host: localhost:9090
+info:
+  contact: {}
+  description: API documentation for the Calc Orchestrator
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Orchestrator API
+  version: "1.0"
+paths:
+  /api/v1/calculate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Объект, содержащий в себе выражение
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CalculateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CalculateResponse'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CalculateResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ApiError'
+      tags:
+      - calculate
+  /api/v1/expressions:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ListAllExpressionsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ApiError'
+      tags:
+      - expressions
+  /api/v1/expressions/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID выражения
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetByIdExpressionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ApiError'
+      tags:
+      - expressions
+  /internal/task:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TaskResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ApiError'
+      tags:
+      - internal
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Объект, содержащий в себе результат части выражения
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.TaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ApiError'
+      tags:
+      - internal
+swagger: "2.0"

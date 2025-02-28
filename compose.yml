@@ -1,0 +1,15 @@
+services:
+  orchestrator:
+    build:
+      context: ./orchestrator
+      target: final
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+  agent:
+    build:
+      context: ./agent
+      target: final
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
