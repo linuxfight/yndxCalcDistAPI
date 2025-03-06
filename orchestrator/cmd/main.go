@@ -10,7 +10,9 @@ import (
 	"orchestrator/internal/logger"
 	"os"
 
+	monitorWare "github.com/gofiber/contrib/monitor"
 	corsWare "github.com/gofiber/fiber/v3/middleware/cors"
+	healthWare "github.com/gofiber/fiber/v3/middleware/healthcheck"
 	loggerWare "github.com/gofiber/fiber/v3/middleware/logger"
 
 	_ "orchestrator/docs"
@@ -85,9 +87,17 @@ func main() {
 
 	logger.Log.Info("Redis initialized")
 
+	// use cors
 	a.Use(corsWare.New())
+	// recover from panic
 	a.Use(middlewares.NewRecovery())
+	// logger for requests
 	a.Use(loggerWare.New())
+	// monitor requests with diagram
+	a.Use(monitorWare.New())
+	// healthcheck for initialization
+	a.Get(healthWare.DefaultStartupEndpoint, healthWare.NewHealthChecker())
+	// swagger web ui
 	a.Use(middlewares.NewSwagger(middlewares.SwaggerConfig{
 		BasePath: "/",
 		FilePath: "./docs/swagger.json",
@@ -95,6 +105,7 @@ func main() {
 		Title:    "Swagger API Docs",
 	}))
 
+	// create api controller
 	h := handlers.Controller{
 		Expressions: redisExpressions,
 		Results:     redisResults,
@@ -102,12 +113,14 @@ func main() {
 		Validator:   newValidator,
 	}
 
+	// map api routes
 	a.Post("/api/v1/calculate", h.PostExpression)
 	a.Get("/api/v1/expressions", h.ListExpressions)
 	a.Get("/api/v1/expressions/:id", h.GetById)
 	a.Get("/internal/task", h.GetTask)
 	a.Post("/internal/task", h.SetTask)
 
+	// start server
 	err := a.Listen(":9090")
 	if err != nil {
 		logger.Log.Fatal(err)

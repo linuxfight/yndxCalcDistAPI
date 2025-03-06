@@ -52,6 +52,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
         ca-certificates \
         tzdata \
+        curl \
         && \
         update-ca-certificates
 

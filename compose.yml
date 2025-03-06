@@ -1,15 +1,16 @@
 services:
   orchestrator:
-    build:
-      context: ./orchestrator
-      target: final
+    image: ghcr.io/linuxfight/yndxcalcdistapi-orchestrator:master
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:9090/startupz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     ports:
       - "9090:9090"
     restart: unless-stopped
   agent:
-    build:
-      context: ./agent
-      target: final
+    image: ghcr.io/linuxfight/yndxcalcdistapi-agent:master
     restart: unless-stopped
   redis:
     image: redis:alpine
@@ -35,3 +36,6 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+
+volumes:
+  redis-data:
