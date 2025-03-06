@@ -94,7 +94,7 @@ func main() {
 	// logger for requests
 	a.Use(loggerWare.New())
 	// monitor requests with diagram
-	a.Use(monitorWare.New())
+	a.Get("/stats", monitorWare.New())
 	// healthcheck for initialization
 	a.Get(healthWare.DefaultStartupEndpoint, healthWare.NewHealthChecker())
 	// swagger web ui

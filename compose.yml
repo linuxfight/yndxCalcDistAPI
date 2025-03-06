@@ -6,11 +6,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      redis:
+        condition: service_healthy
     ports:
       - "9090:9090"
+    env_file:
+      - .env
     restart: unless-stopped
   agent:
     image: ghcr.io/linuxfight/yndxcalcdistapi-agent:master
+    env_file:
+      - .env
+    depends_on:
+      orchestrator:
+        condition: service_healthy
     restart: unless-stopped
   redis:
     image: redis:alpine

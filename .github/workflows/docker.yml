@@ -4,6 +4,8 @@ on:
     paths-ignore:
       - .gitignore
       - README.md
+      - compose.yml
+      - .env
 
 env:
   REGISTRY: ghcr.io
