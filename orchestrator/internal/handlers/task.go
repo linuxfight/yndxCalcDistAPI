@@ -222,21 +222,8 @@ func (a Controller) SetTask(c fiber.Ctx) error {
 		return err
 	}
 
-	if res, err := a.Results.Get(c.Context(), body.ID).Result(); err == nil {
-		var exp models.Expression
-		if err := json.Unmarshal([]byte(res), &exp); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(
-				&fiber.Error{
-					Message: err.Error(),
-					Code:    fiber.StatusInternalServerError,
-				})
-		}
-		exp.Result = task.Result.(float64)
-		marshal, err := json.Marshal(&task)
-		if err != nil {
-			return err
-		}
-		if err := a.Results.Set(c.Context(), body.ID, string(marshal), 0).Err(); err != nil {
+	if _, err := a.Results.Get(c.Context(), body.ID).Result(); err == nil {
+		if err := a.Results.Set(c.Context(), body.ID, task.Result, 0).Err(); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(
 				&fiber.Error{
 					Message: err.Error(),

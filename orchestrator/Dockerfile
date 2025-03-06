@@ -24,6 +24,9 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 # Placing it here allows the previous steps to be cached across architectures.
 ARG TARGETARCH
 
+# Run tests
+RUN go test -v ./...
+
 # Build the application.
 # Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
 # Leverage a bind mount to the current directory to avoid having to copy the
@@ -66,6 +69,8 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 USER appuser
+
+COPY docs /docs
 
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/

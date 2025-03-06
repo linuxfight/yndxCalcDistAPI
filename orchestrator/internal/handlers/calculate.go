@@ -74,15 +74,15 @@ func (a Controller) PostExpression(c fiber.Ctx) error {
 
 		for i, task := range tasks {
 			var taskString []byte
+			if i == len(tasks)-1 {
+				task.ID = id
+			}
 			if taskString, err = json.Marshal(task); err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(
 					&fiber.Error{
 						Message: constValues.InvalidExpressionError.Error(),
 						Code:    fiber.StatusInternalServerError,
 					})
-			}
-			if i == len(tasks)-1 {
-				task.ID = id
 			}
 			if a.Tasks.Set(c.Context(), task.ID, string(taskString), 0).Err() != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(
