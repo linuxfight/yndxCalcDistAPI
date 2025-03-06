@@ -12,7 +12,7 @@ func NewRecovery() fiber.Handler {
 				log.Println("Recovered from panic:", err)
 				_ = c.Status(fiber.StatusInternalServerError).JSON(
 					&fiber.Error{
-						Message: err.(error).Error(),
+						Message: "internal server error",
 						Code:    fiber.StatusInternalServerError},
 				)
 			}
