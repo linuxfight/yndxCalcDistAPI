@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 )
 
 // Work is a main worker method
@@ -31,15 +30,17 @@ func processTask(client *http.Client, apiUrl string) {
 		return
 	}
 
-	_, cancel := context.WithTimeout(context.Background(), time.Duration(task.OperationTime)*time.Millisecond)
-	defer func() {
-		err := sendResult(client, apiUrl, task.ID, "ERROR")
-		if err != nil {
-			log.Printf("Error sending result: %v\n", err)
-		}
-		cancel()
-		return
-	}()
+	/*
+		_, cancel := context.WithTimeout(context.Background(), time.Duration(task.OperationTime)*time.Millisecond)
+			defer func() {
+				err := sendResult(client, apiUrl, task.ID, "ERROR")
+				if err != nil {
+					log.Printf("Error sending result: %v\n", err)
+				}
+				cancel()
+				return
+			}()
+	*/
 
 	result, err := calculateResult(task)
 	if err != nil {
