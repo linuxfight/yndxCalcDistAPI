@@ -21,11 +21,7 @@ func (a *Controller) ListExpressions(c fiber.Ctx) error {
 	result, err := a.Results.Keys(c.Context(), "*").Result()
 	expressions := []models.Expression{}
 	if err != nil && !errors.Is(err, redis.Nil) {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			&fiber.Error{
-				Message: err.Error(),
-				Code:    fiber.StatusInternalServerError,
-			})
+		return sendError(c, fiber.StatusInternalServerError, err)
 	} else if errors.Is(err, redis.Nil) {
 		return c.Status(fiber.StatusOK).JSON(models.ListAllExpressionsResponse{Expressions: expressions})
 	}
@@ -33,18 +29,14 @@ func (a *Controller) ListExpressions(c fiber.Ctx) error {
 	for _, id := range result {
 		value, err := a.Results.Get(c.Context(), id).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
-			return c.Status(fiber.StatusInternalServerError).JSON(
-				&fiber.Error{
-					Message: err.Error(),
-					Code:    fiber.StatusInternalServerError,
-				})
+			return sendError(c, fiber.StatusInternalServerError, err)
 		}
 		switch value {
 		case constValues.Error:
 			expressions = append(expressions, models.Expression{
 				Id:     id,
 				Result: 0,
-				Status: constValues.InvalidExpressionError.Error(),
+				Status: constValues.Error,
 			})
 		case constValues.Processing:
 			expressions = append(expressions, models.Expression{
@@ -78,26 +70,14 @@ func (a *Controller) ListExpressions(c fiber.Ctx) error {
 func (a *Controller) GetById(c fiber.Ctx) error {
 	id := c.Params("id")
 	if uuid.Validate(id) != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(
-			&fiber.Error{
-				Message: constValues.InvalidUuidError.Error(),
-				Code:    fiber.StatusUnprocessableEntity,
-			})
+		return sendError(c, fiber.StatusUnprocessableEntity, constValues.InvalidUuidError)
 	}
 
 	value, err := a.Results.Get(c.Context(), id).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			&fiber.Error{
-				Message: err.Error(),
-				Code:    fiber.StatusInternalServerError,
-			})
+		return sendError(c, fiber.StatusInternalServerError, err)
 	} else if errors.Is(err, redis.Nil) {
-		return c.Status(fiber.StatusNotFound).JSON(
-			&fiber.Error{
-				Message: constValues.NotFoundError.Error(),
-				Code:    fiber.StatusNotFound,
-			})
+		return sendError(c, fiber.StatusNotFound, constValues.NotFoundError)
 	}
 
 	expression := models.Expression{}
@@ -106,7 +86,7 @@ func (a *Controller) GetById(c fiber.Ctx) error {
 		expression = models.Expression{
 			Id:     id,
 			Result: 0,
-			Status: constValues.InvalidExpressionError.Error(),
+			Status: constValues.Error,
 		}
 	case constValues.Processing:
 		expression = models.Expression{

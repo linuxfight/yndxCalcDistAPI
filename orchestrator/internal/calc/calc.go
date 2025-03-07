@@ -99,12 +99,11 @@ func processBasicLit(lit *ast.BasicLit) (float64, error) {
 func createTask(tasks *[]models.InternalTask, left, right interface{}, operation string) (string, error) {
 	taskID := uuid.New().String()
 	*tasks = append(*tasks, models.InternalTask{
-		ID:            taskID,
-		Arg1:          left,
-		Arg2:          right,
-		Operation:     operation,
-		OperationTime: 0,
-		Result:        "",
+		ID:        taskID,
+		Arg1:      left,
+		Arg2:      right,
+		Operation: operation,
+		Result:    "",
 	})
 	return taskID, nil
 }

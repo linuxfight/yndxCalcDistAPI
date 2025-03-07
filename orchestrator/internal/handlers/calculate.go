@@ -24,21 +24,12 @@ import (
 // @Router       /api/v1/calculate [post]
 func (a *Controller) PostExpression(c fiber.Ctx) error {
 	if c.Get("Content-Type") != "application/json" {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(
-			&fiber.Error{
-				Message: constValues.ContentTypeError.Error(),
-				Code:    fiber.StatusUnprocessableEntity,
-			},
-		)
+		return sendError(c, fiber.StatusUnprocessableEntity, constValues.ContentTypeError)
 	}
 
 	var body models.CalculateRequest
 	if err := c.Bind().JSON(&body); err != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(
-			&fiber.Error{
-				Message: constValues.InvalidJsonError.Error(),
-				Code:    fiber.StatusUnprocessableEntity,
-			})
+		return sendError(c, fiber.StatusUnprocessableEntity, constValues.InvalidJsonError)
 	}
 
 	body.Expression = strings.ReplaceAll(body.Expression, " ", "")
@@ -46,30 +37,18 @@ func (a *Controller) PostExpression(c fiber.Ctx) error {
 
 	result, err := a.Expressions.Get(c.Context(), body.Expression).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		return c.Status(fiber.StatusInternalServerError).JSON(
-			&fiber.Error{
-				Message: constValues.InvalidExpressionError.Error(),
-				Code:    fiber.StatusInternalServerError,
-			})
+		return sendError(c, fiber.StatusInternalServerError, err)
 	} else if errors.Is(err, redis.Nil) {
 		id := uuid.New().String()
 
 		tasks, err := calc.ParseExpression(body.Expression)
 		if err != nil {
-			return c.Status(fiber.StatusUnprocessableEntity).JSON(
-				&fiber.Error{
-					Message: constValues.InvalidExpressionError.Error(),
-					Code:    fiber.StatusUnprocessableEntity,
-				})
+			return sendError(c, fiber.StatusUnprocessableEntity, constValues.InvalidExpressionError)
 		}
 
 		if a.Expressions.Set(c.Context(), body.Expression, id, 0).Err() != nil ||
 			a.Results.Set(c.Context(), id, constValues.Processing, 0).Err() != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(
-				&fiber.Error{
-					Message: constValues.InvalidExpressionError.Error(),
-					Code:    fiber.StatusInternalServerError,
-				})
+			return sendError(c, fiber.StatusInternalServerError, err)
 		}
 
 		for i, task := range tasks {
@@ -78,18 +57,10 @@ func (a *Controller) PostExpression(c fiber.Ctx) error {
 				task.ID = id
 			}
 			if taskString, err = json.Marshal(task); err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(
-					&fiber.Error{
-						Message: constValues.InvalidExpressionError.Error(),
-						Code:    fiber.StatusInternalServerError,
-					})
+				return sendError(c, fiber.StatusInternalServerError, err)
 			}
 			if a.Tasks.Set(c.Context(), task.ID, string(taskString), 0).Err() != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(
-					&fiber.Error{
-						Message: constValues.InvalidExpressionError.Error(),
-						Code:    fiber.StatusInternalServerError,
-					})
+				return sendError(c, fiber.StatusInternalServerError, err)
 			}
 		}
 
