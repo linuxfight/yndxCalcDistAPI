@@ -192,17 +192,17 @@ func (c *Config) GetOperationTime(operation string) int {
 	return 0
 }
 
-func (a *Controller) getTask(ctx context.Context, taskId string) (models.InternalTask, error) {
+func (a *Controller) getTask(ctx context.Context, taskId string) (*models.InternalTask, error) {
 	taskStr, err := a.Tasks.Get(ctx, taskId).Result()
 	if err != nil {
-		return models.InternalTask{}, err
+		return nil, err
 	}
 
 	var task models.InternalTask
 	if err := json.Unmarshal([]byte(taskStr), &task); err != nil {
-		return models.InternalTask{}, err
+		return nil, err
 	}
-	return task, nil
+	return &task, nil
 }
 
 func (a *Controller) processTaskArguments(ctx context.Context, taskId string, task *models.InternalTask) (bool, error) {
@@ -287,23 +287,26 @@ func (a *Controller) updateTask(ctx context.Context, taskId string, task *models
 	return a.Tasks.Set(ctx, taskId, string(taskBytes), 0).Err()
 }
 
-func (a *Controller) handleValidTask(c fiber.Ctx, task *models.InternalTask) error {
+func (a *Controller) getTaskResponse(task *models.InternalTask) *models.TaskResponse {
 	arg1, ok1 := task.Arg1.(float64)
 	arg2, ok2 := task.Arg2.(float64)
 	if !ok1 || !ok2 {
-		return sendError(c, fiber.StatusInternalServerError, fmt.Errorf("invalid argument types"))
+		return nil
 	}
 
-	return c.Status(fiber.StatusOK).JSON(&models.TaskResponse{
+	return &models.TaskResponse{
 		ID:            task.ID,
 		Arg1:          arg1,
 		Arg2:          arg2,
 		Operation:     task.Operation,
 		OperationTime: a.cfg.GetOperationTime(task.Operation),
-	})
+	}
 }
 
 func sendError(c fiber.Ctx, status int, err error) error {
+	if status == fiber.StatusInternalServerError {
+		logger.Log.Errorf("Error: %v\n", err)
+	}
 	return c.Status(status).JSON(&fiber.Error{
 		Message: err.Error(),
 		Code:    status,

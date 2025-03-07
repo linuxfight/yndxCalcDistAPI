@@ -6,7 +6,6 @@ type TaskResponse struct {
 	Arg2          float64 `json:"arg2" example:"1"`
 	Operation     string  `json:"operation" example:"+"`
 	OperationTime int     `json:"operation_time" example:"1000"`
-	ExpressionId  string  `json:"expression_id" example:"928b303f-cfcc-46f4-ae24-aabb72bbb7d9"`
 }
 
 type InternalTask struct {

@@ -1,5 +1,7 @@
 package models
 
+const ERROR = "ERROR"
+
 type TaskResponse struct {
 	ID            string  `json:"id"`
 	Arg1          float64 `json:"arg1"`

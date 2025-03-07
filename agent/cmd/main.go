@@ -2,8 +2,8 @@ package main
 
 import (
 	"agent/internal/config"
+	"agent/internal/logger"
 	"agent/internal/worker"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,10 +12,18 @@ import (
 )
 
 func main() {
+	logger.New(false, "")
+	defer func() {
+		err := logger.Log.Sync()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	c := config.New()
 
-	log.Printf("Worker started with URL: %s\n", c.ApiUrl)
-	log.Printf("Workers: %d\n", c.ComputingPower)
+	logger.Log.Infof("Worker started with URL: %s\n", c.ApiUrl)
+	logger.Log.Infof("Workers: %d\n", c.ComputingPower)
 
 	client := &http.Client{
 		Timeout: config.RequestTimeout,
@@ -38,7 +46,7 @@ func main() {
 				return
 			default:
 				taskCh <- struct{}{}
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 			}
 		}
 	}()
@@ -48,5 +56,5 @@ func main() {
 	}
 
 	<-shutdownCh
-	log.Println("Shutting down worker...")
+	logger.Log.Info("Shutting down agent...")
 }

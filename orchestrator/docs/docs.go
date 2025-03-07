@@ -315,10 +315,6 @@ const docTemplate = `{
                     "type": "number",
                     "example": 1
                 },
-                "expression_id": {
-                    "type": "string",
-                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
-                },
                 "id": {
                     "type": "string",
                     "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"

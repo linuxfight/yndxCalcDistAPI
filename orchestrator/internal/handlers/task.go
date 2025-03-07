@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"orchestrator/internal/constValues"
 	"orchestrator/internal/handlers/models"
 )
@@ -19,6 +21,9 @@ func (a *Controller) GetTask(c fiber.Ctx) error {
 	ctx := c.Context()
 	taskIds, err := a.Tasks.Keys(ctx, "*").Result()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return sendError(c, fiber.StatusNotFound, constValues.NotFoundError)
+		}
 		return sendError(c, fiber.StatusInternalServerError, err)
 	}
 
@@ -28,7 +33,7 @@ func (a *Controller) GetTask(c fiber.Ctx) error {
 			continue
 		}
 
-		hasError, err := a.processTaskArguments(ctx, taskId, &task)
+		hasError, err := a.processTaskArguments(ctx, taskId, task)
 		if err != nil {
 			return sendError(c, fiber.StatusInternalServerError, err)
 		}
@@ -36,13 +41,13 @@ func (a *Controller) GetTask(c fiber.Ctx) error {
 			continue
 		}
 
-		return a.handleValidTask(c, &task)
+		if resp := a.getTaskResponse(task); resp != nil {
+			return c.Status(fiber.StatusOK).JSON(&resp)
+		}
+		continue
 	}
 
-	return c.Status(fiber.StatusNotFound).JSON(&fiber.Error{
-		Message: "Task not found",
-		Code:    fiber.StatusNotFound,
-	})
+	return sendError(c, fiber.StatusNotFound, constValues.NotFoundError)
 }
 
 // SetTask @Summary      Обновить результат выражения

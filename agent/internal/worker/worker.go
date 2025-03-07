@@ -1,15 +1,15 @@
 package worker
 
 import (
-	"agent/internal/config"
+	"agent/internal/logger"
 	"agent/internal/models"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"time"
 )
 
 // Work is a main worker method
@@ -23,52 +23,50 @@ func Work(taskCh <-chan struct{}, client *http.Client, apiUrl string) {
 func processTask(client *http.Client, apiUrl string) {
 	task, err := getTask(client, apiUrl)
 	if err != nil {
-		log.Printf("Error getting task: %v\n", err)
+		logger.Log.Infof("Error getting task: %v\n", err)
 		return
 	}
 	if task == nil {
 		return
 	}
 
-	/*
-		_, cancel := context.WithTimeout(context.Background(), time.Duration(task.OperationTime)*time.Millisecond)
-			defer func() {
-				err := sendResult(client, apiUrl, task.ID, "ERROR")
-				if err != nil {
-					log.Printf("Error sending result: %v\n", err)
-				}
-				cancel()
-				return
-			}()
-	*/
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(task.OperationTime)*time.Millisecond)
+	defer cancel()
 
-	result, err := calculateResult(task)
-	if err != nil {
-		err := sendResult(client, apiUrl, task.ID, "ERROR")
+	resultChan := make(chan float64, 1)
+	errorChan := make(chan error, 1)
+
+	go func() {
+		res, err := calculateResult(task)
 		if err != nil {
-			log.Printf("Error sending result: %v\n", err)
+			errorChan <- err
 			return
 		}
-		log.Printf("Error calculating result: %v\n", err)
-		return
-	}
+		resultChan <- res
+	}()
 
-	if err := sendResult(client, apiUrl, task.ID, result); err != nil {
-		log.Printf("Error sending result: %v\n", err)
+	select {
+	case <-ctx.Done():
+		logger.Log.Infof("Task %s timed out", task.ID)
+		if err := sendResult(client, apiUrl, task.ID, models.ERROR); err != nil {
+			logger.Log.Infof("Error sending timeout result: %v\n", err)
+		}
+	case err := <-errorChan:
+		logger.Log.Infof("Error calculating result: %v\n", err)
+		if err := sendResult(client, apiUrl, task.ID, models.ERROR); err != nil {
+			logger.Log.Infof("Error sending error result: %v\n", err)
+		}
+	case result := <-resultChan:
+		if err := sendResult(client, apiUrl, task.ID, result); err != nil {
+			logger.Log.Infof("Error sending result: %v\n", err)
+			_ = sendResult(client, apiUrl, task.ID, models.ERROR)
+		}
 	}
 }
 
 // getTask is a method for getting a task from the API
 func getTask(client *http.Client, apiUrl string) (*models.TaskResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), config.RequestTimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", apiUrl, nil)
-	if err != nil {
-		return nil, fmt.Errorf("create request failed: %w", err)
-	}
-
-	resp, err := client.Do(req)
+	resp, err := client.Get(apiUrl)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
@@ -117,10 +115,7 @@ func sendResult(client *http.Client, apiUrl, taskID string, result interface{}) 
 		return fmt.Errorf("marshal failed: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.RequestTimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "POST", apiUrl, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", apiUrl, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("create request failed: %w", err)
 	}
@@ -142,6 +137,6 @@ func sendResult(client *http.Client, apiUrl, taskID string, result interface{}) 
 // safeClose is a method for safely closing io
 func safeClose(closer io.Closer) {
 	if err := closer.Close(); err != nil {
-		log.Printf("Error closing resource: %v\n", err)
+		logger.Log.Infof("Error closing resource: %v\n", err)
 	}
 }
