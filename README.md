@@ -31,7 +31,7 @@ docker compose -f local-compose.yml up
 Локально: http://localhost:9090/stats
 
 ## Примеры запросов
-### ```GET /api/v1/calculate``` - передать выражение на вычисление
+### ```POST /api/v1/calculate``` - передать выражение на вычисление
 ```shell
 curl -X 'POST' \
   'http://localhost:9090/api/v1/calculate' \
@@ -61,7 +61,7 @@ curl -X 'POST' \
 }
 ```
 
-### 2. ```GET /api/v1/expressions``` - получить список всех выражений
+### ```GET /api/v1/expressions``` - получить список всех выражений
 ```shell
 curl -X 'GET' \
   'http://localhost:9090/api/v1/expressions' \
@@ -105,7 +105,7 @@ curl -X 'GET' \
 }
 ```
 
-### 3. ```GET /api/v1/expressions/{id}``` - получить выражение по ID
+### ```GET /api/v1/expressions/{id}``` - получить выражение по ID
 ```shell
 curl -X 'GET' \
   'http://localhost:9090/api/v1/expressions/928b303f-cfcc-46f4-ae24-aabb72bbb7d9' \
