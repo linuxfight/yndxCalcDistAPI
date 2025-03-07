@@ -42,6 +42,11 @@ func (a *Controller) GetTask(c fiber.Ctx) error {
 		}
 
 		if resp := a.getTaskResponse(task); resp != nil {
+			task.Result = constValues.Processing
+			err := a.updateTask(ctx, taskId, task)
+			if err != nil {
+				return sendError(c, fiber.StatusInternalServerError, err)
+			}
 			return c.Status(fiber.StatusOK).JSON(&resp)
 		}
 		continue

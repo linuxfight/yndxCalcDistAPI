@@ -15,6 +15,7 @@ const (
 type Config struct {
 	ApiUrl         string
 	ComputingPower int
+	WaitTime       int
 }
 
 func New() *Config {
@@ -24,16 +25,19 @@ func New() *Config {
 	}
 
 	powerStr := os.Getenv("POWER")
-	power := 5
+	power := 1
+	waitTime := 10000
 	if powerStr != "" {
 		var err error
 		if power, err = strconv.Atoi(powerStr); err != nil {
 			log.Printf("Error converting POWER to int: %s\n", err)
 		}
+		waitTime = 10
 	}
 
 	return &Config{
 		ApiUrl:         apiUrl,
 		ComputingPower: power,
+		WaitTime:       waitTime,
 	}
 }

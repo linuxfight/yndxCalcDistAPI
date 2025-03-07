@@ -46,7 +46,7 @@ func main() {
 				return
 			default:
 				taskCh <- struct{}{}
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(time.Duration(c.WaitTime) * time.Millisecond)
 			}
 		}
 	}()

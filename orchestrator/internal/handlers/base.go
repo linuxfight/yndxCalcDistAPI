@@ -226,9 +226,6 @@ func (a *Controller) processTaskArguments(ctx context.Context, taskId string, ta
 		return true, a.updateErrorTask(ctx, taskId, task)
 	}
 
-	if task.Result == "" {
-		task.Result = constValues.Processing
-	}
 	return false, a.updateTask(ctx, taskId, task)
 }
 
