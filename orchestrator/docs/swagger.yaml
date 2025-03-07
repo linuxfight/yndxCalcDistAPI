@@ -9,6 +9,7 @@ definitions:
   models.CalculateRequest:
     properties:
       expression:
+        example: 2+2
         type: string
     required:
     - expression
@@ -16,15 +17,18 @@ definitions:
   models.CalculateResponse:
     properties:
       id:
+        example: 928b303f-cfcc-46f4-ae24-aabb72bbb7d9
         type: string
     type: object
   models.Expression:
     properties:
       id:
+        example: 928b303f-cfcc-46f4-ae24-aabb72bbb7d9
         type: string
       result:
         type: number
       status:
+        example: DONE
         type: string
     type: object
   models.GetByIdExpressionResponse:
@@ -42,22 +46,29 @@ definitions:
   models.TaskRequest:
     properties:
       id:
+        example: 928b303f-cfcc-46f4-ae24-aabb72bbb7d9
         type: string
       result: {}
     type: object
   models.TaskResponse:
     properties:
       arg1:
+        example: 1
         type: number
       arg2:
+        example: 1
         type: number
       expression_id:
+        example: 928b303f-cfcc-46f4-ae24-aabb72bbb7d9
         type: string
       id:
+        example: 928b303f-cfcc-46f4-ae24-aabb72bbb7d9
         type: string
       operation:
+        example: +
         type: string
       operation_time:
+        example: 1000
         type: integer
     type: object
 host: localhost:9090

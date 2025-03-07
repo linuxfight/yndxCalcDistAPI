@@ -22,7 +22,7 @@ import (
 // @Failure      422  {object}  models.ApiError
 // @Failure      500  {object}  models.ApiError
 // @Router       /api/v1/calculate [post]
-func (a Controller) PostExpression(c fiber.Ctx) error {
+func (a *Controller) PostExpression(c fiber.Ctx) error {
 	if c.Get("Content-Type") != "application/json" {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(
 			&fiber.Error{

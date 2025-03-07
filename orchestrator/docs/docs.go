@@ -245,7 +245,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "expression": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2+2"
                 }
             }
         },
@@ -253,7 +254,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
                 }
             }
         },
@@ -261,13 +263,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
                 },
                 "result": {
                     "type": "number"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "DONE"
                 }
             }
         },
@@ -294,7 +298,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
                 },
                 "result": {}
             }
@@ -303,22 +308,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "arg1": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 1
                 },
                 "arg2": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 1
                 },
                 "expression_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9"
                 },
                 "operation": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+"
                 },
                 "operation_time": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1000
                 }
             }
         }

@@ -17,7 +17,7 @@ import (
 // @Success      200  {object}  models.ListAllExpressionsResponse
 // @Failure      500  {object}  models.ApiError
 // @Router       /api/v1/expressions [get]
-func (a Controller) ListExpressions(c fiber.Ctx) error {
+func (a *Controller) ListExpressions(c fiber.Ctx) error {
 	result, err := a.Results.Keys(c.Context(), "*").Result()
 	expressions := []models.Expression{}
 	if err != nil && !errors.Is(err, redis.Nil) {
@@ -75,7 +75,7 @@ func (a Controller) ListExpressions(c fiber.Ctx) error {
 // @Failure      422  {object}  models.ApiError
 // @Failure      500  {object}  models.ApiError
 // @Router       /api/v1/expressions/{id} [get]
-func (a Controller) GetById(c fiber.Ctx) error {
+func (a *Controller) GetById(c fiber.Ctx) error {
 	id := c.Params("id")
 	if uuid.Validate(id) != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(

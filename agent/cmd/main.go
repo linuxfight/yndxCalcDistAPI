@@ -12,17 +12,15 @@ import (
 )
 
 func main() {
-	apiUrl := os.Getenv("API_URL")
-	if apiUrl == "" {
-		apiUrl = "http://localhost:9090/internal/task"
-	}
+	c := config.New()
 
-	log.Printf("Worker started with URL: %s\n", apiUrl)
+	log.Printf("Worker started with URL: %s\n", c.ApiUrl)
+	log.Printf("Workers: %d\n", c.ComputingPower)
 
 	client := &http.Client{
 		Timeout: config.RequestTimeout,
 		Transport: &http.Transport{
-			MaxIdleConnsPerHost: config.MaxWorkers,
+			MaxIdleConnsPerHost: c.ComputingPower,
 			DisableKeepAlives:   false,
 		},
 	}
@@ -45,8 +43,8 @@ func main() {
 		}
 	}()
 
-	for i := 0; i < config.MaxWorkers; i++ {
-		go worker.Work(taskCh, client, apiUrl)
+	for i := 0; i < c.ComputingPower; i++ {
+		go worker.Work(taskCh, client, c.ApiUrl)
 	}
 
 	<-shutdownCh

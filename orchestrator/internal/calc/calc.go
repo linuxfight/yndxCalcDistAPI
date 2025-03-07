@@ -103,7 +103,7 @@ func createTask(tasks *[]models.InternalTask, left, right interface{}, operation
 		Arg1:          left,
 		Arg2:          right,
 		Operation:     operation,
-		OperationTime: 0, // TODO: Set from environment
+		OperationTime: 0,
 		Result:        "",
 	})
 	return taskID, nil

@@ -9,6 +9,6 @@ type TaskResponse struct {
 }
 
 type TaskRequest struct {
-	ID     string `json:"id"`
-	Result string `json:"result"`
+	ID     string      `json:"id"`
+	Result interface{} `json:"result"`
 }

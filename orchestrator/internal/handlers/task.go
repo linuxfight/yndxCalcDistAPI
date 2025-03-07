@@ -17,7 +17,7 @@ import (
 // @Failure      404  {object}  models.ApiError
 // @Failure      500  {object}  models.ApiError
 // @Router       /internal/task [get]
-func (a Controller) GetTask(c fiber.Ctx) error {
+func (a *Controller) GetTask(c fiber.Ctx) error {
 	taskIds, err := a.Tasks.Keys(c.Context(), "*").Result()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(
@@ -148,6 +148,15 @@ func (a Controller) GetTask(c fiber.Ctx) error {
 			}
 
 			if task.Result == constValues.Error {
+				if _, err := a.Results.Get(c.Context(), task.ID).Result(); err == nil {
+					if err := a.Results.Set(c.Context(), task.ID, task.Result, 0).Err(); err != nil {
+						return c.Status(fiber.StatusInternalServerError).JSON(
+							&fiber.Error{
+								Message: err.Error(),
+								Code:    fiber.StatusInternalServerError,
+							})
+					}
+				}
 				continue
 			}
 
@@ -157,7 +166,7 @@ func (a Controller) GetTask(c fiber.Ctx) error {
 					Arg1:          task.Arg1.(float64),
 					Arg2:          task.Arg2.(float64),
 					Operation:     task.Operation,
-					OperationTime: task.OperationTime, // TODO: get from env
+					OperationTime: a.cfg.GetOperationTime(task.Operation),
 				})
 		}
 	}
@@ -179,7 +188,7 @@ func (a Controller) GetTask(c fiber.Ctx) error {
 // @Failure      422  {object}  models.ApiError
 // @Failure      500  {object}  models.ApiError
 // @Router       /internal/task [post]
-func (a Controller) SetTask(c fiber.Ctx) error {
+func (a *Controller) SetTask(c fiber.Ctx) error {
 	if c.Get("Content-Type") != "application/json" {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(
 			&fiber.Error{

@@ -10,15 +10,17 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
+	"time"
 )
 
+// Work is a main worker method
 func Work(taskCh <-chan struct{}, client *http.Client, apiUrl string) {
 	for range taskCh {
 		processTask(client, apiUrl)
 	}
 }
 
+// processTask is a method for processing task in a worker
 func processTask(client *http.Client, apiUrl string) {
 	task, err := getTask(client, apiUrl)
 	if err != nil {
@@ -29,8 +31,23 @@ func processTask(client *http.Client, apiUrl string) {
 		return
 	}
 
+	_, cancel := context.WithTimeout(context.Background(), time.Duration(task.OperationTime)*time.Millisecond)
+	defer func() {
+		err := sendResult(client, apiUrl, task.ID, "ERROR")
+		if err != nil {
+			log.Printf("Error sending result: %v\n", err)
+		}
+		cancel()
+		return
+	}()
+
 	result, err := calculateResult(task)
 	if err != nil {
+		err := sendResult(client, apiUrl, task.ID, "ERROR")
+		if err != nil {
+			log.Printf("Error sending result: %v\n", err)
+			return
+		}
 		log.Printf("Error calculating result: %v\n", err)
 		return
 	}
@@ -40,6 +57,7 @@ func processTask(client *http.Client, apiUrl string) {
 	}
 }
 
+// getTask is a method for getting a task from the API
 func getTask(client *http.Client, apiUrl string) (*models.TaskResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), config.RequestTimeout)
 	defer cancel()
@@ -67,6 +85,7 @@ func getTask(client *http.Client, apiUrl string) (*models.TaskResponse, error) {
 	return &task, nil
 }
 
+// calculateResult is a method for calculating result of task
 func calculateResult(task *models.TaskResponse) (float64, error) {
 	switch task.Operation {
 	case "+":
@@ -85,10 +104,11 @@ func calculateResult(task *models.TaskResponse) (float64, error) {
 	}
 }
 
-func sendResult(client *http.Client, apiUrl, taskID string, result float64) error {
+// sendResult is a method for sending calculation result to the API
+func sendResult(client *http.Client, apiUrl, taskID string, result interface{}) error {
 	data := models.TaskRequest{
 		ID:     taskID,
-		Result: strconv.FormatFloat(result, 'f', 2, 64), // Ограничение до 2 знаков после запятой
+		Result: result,
 	}
 
 	body, err := json.Marshal(data)
@@ -118,6 +138,7 @@ func sendResult(client *http.Client, apiUrl, taskID string, result float64) erro
 	return nil
 }
 
+// safeClose is a method for safely closing io
 func safeClose(closer io.Closer) {
 	if err := closer.Close(); err != nil {
 		log.Printf("Error closing resource: %v\n", err)

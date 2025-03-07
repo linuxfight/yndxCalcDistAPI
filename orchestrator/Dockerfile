@@ -24,6 +24,12 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 # Placing it here allows the previous steps to be cached across architectures.
 ARG TARGETARCH
 
+# Generate swagger docs
+COPY . .
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN swag init -g cmd/main.go
+RUN find ./docs -type f -exec sed -i 's/localhost:9090/yndx.linuxfight.duckdns.org/g' {} +
+
 # Run tests.
 # Build the application.
 # Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
@@ -69,7 +75,7 @@ RUN adduser \
     appuser
 USER appuser
 
-COPY docs /docs
+COPY --from=build /src/docs /docs
 
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/

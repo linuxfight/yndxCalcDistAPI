@@ -1,6 +1,8 @@
 services:
   orchestrator:
-    image: ghcr.io/linuxfight/yndxcalcdistapi-orchestrator:master
+    build:
+      context: orchestrator
+      target: final
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:9090/startupz"]
       interval: 10s
@@ -15,7 +17,9 @@ services:
       - .env
     restart: unless-stopped
   agent:
-    image: ghcr.io/linuxfight/yndxcalcdistapi-agent:master
+    build:
+      context: agent
+      target: final
     env_file:
       - .env
     depends_on:
