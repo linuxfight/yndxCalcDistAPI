@@ -114,12 +114,11 @@ curl -X 'GET' \
 200: результат
 ```json
 {
-  "id": "2de2c6dd-6d3d-481d-9925-7837eed9ac90",
-  "arg1": 3,
-  "arg2": 0,
-  "operation": "/",
-  "operation_time": 1000,
-  "expression_id": ""
+  "expression": {
+    "id": "928b303f-cfcc-46f4-ae24-aabb72bbb7d9",
+    "result": 0,
+    "status": "DONE"
+  }
 }
 ```
 404: выражение не найдено
